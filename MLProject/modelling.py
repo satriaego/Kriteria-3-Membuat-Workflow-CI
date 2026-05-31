@@ -15,24 +15,14 @@ args = parser.parse_args()
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 if os.environ.get("GITHUB_ACTIONS") == "true":
-    import dagshub
     print("🌐 Mendeteksi GitHub Actions, mengalihkan tracking ke DagsHub Cloud...")
     
-    # Debug: cek apakah token terbaca
     token = os.environ.get("DAGSHUB_TOKEN", "")
     print(f"Token ada: {bool(token)}, panjang: {len(token)}")
     
-    os.environ["DAGSHUB_USER_TOKEN"] = token
-    
-    dagshub.init(
-        repo_owner='satriaego',
-        repo_name='Kriteria-3-Membuat-Workflow-CI', 
-        mlflow=True,
-    )
-
-else:
-    print("💻 Menjalankan secara lokal di komputer...")
-    mlflow.set_tracking_uri(f"file:///{os.path.join(current_dir, 'mlruns')}")
+    mlflow.set_tracking_uri(f"https://dagshub.com/satriaego/Kriteria-3-Membuat-Workflow-CI.mlflow")
+    os.environ["MLFLOW_TRACKING_USERNAME"] = token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = token
 
 mlflow.sklearn.autolog()
 

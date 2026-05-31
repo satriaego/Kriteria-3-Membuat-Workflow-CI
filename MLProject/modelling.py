@@ -65,15 +65,17 @@ train_roc = roc_auc_score(y_train, y_train_proba)
 
 test_acc = accuracy_score(y_test, y_test_pred)
 
-# 📤 3. Kirim Semua Metrik Menggunakan Run ID Aktif dari mlflow run
-print("📥 Memulai proses inject manual seluruh metrik ke DagsHub...")
-mlflow.log_metric("training_accuracy_score", train_acc)
-mlflow.log_metric("training_f1_score", train_f1)
-mlflow.log_metric("training_log_loss", train_loss)
-mlflow.log_metric("training_precision_score", train_prec)
-mlflow.log_metric("training_recall_score", train_rec)
-mlflow.log_metric("training_roc_auc", train_roc)
-mlflow.log_metric("training_score", train_acc)
-mlflow.log_metric("testing_accuracy_score", test_acc)
+if "MLFLOW_RUN_ID" in os.environ:
+    del os.environ["MLFLOW_RUN_ID"]
 
-print(f"✅ Seluruh metrik sukses di-inject! Akurasi Uji Akhir: {test_acc:.2%}")
+with mlflow.start_run():
+    mlflow.log_metric("training_accuracy_score", train_acc)
+    mlflow.log_metric("training_f1_score", train_f1)
+    mlflow.log_metric("training_log_loss", train_loss)
+    mlflow.log_metric("training_precision_score", train_prec)
+    mlflow.log_metric("training_recall_score", train_rec)
+    mlflow.log_metric("training_roc_auc", train_roc)
+    mlflow.log_metric("training_score", train_acc)
+    mlflow.log_metric("testing_accuracy_score", test_acc)
+
+print(f"selesai")

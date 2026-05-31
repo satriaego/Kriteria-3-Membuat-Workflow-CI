@@ -27,6 +27,6 @@ jobs:
 
     - name: 🚀 Run MLflow Experiment via MLproject
       env:
-        DAGSHUB_CLIENT_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }} 
       run: |
         mlflow run ./MLProject --entry-point main -P n_estimators=120 -P max_depth=6 --env-manager local

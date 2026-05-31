@@ -23,8 +23,7 @@ if os.environ.get("GITHUB_ACTIONS") == "true":
     dagshub.init(
         repo_owner='satriaego',
         repo_name='Kriteria-3-Membuat-Workflow-CI', 
-        mlflow=True,
-        token=token_otomatis                        
+        mlflow=True,                       
     )
 else:
     print("💻 Menjalankan secara lokal di komputer...")

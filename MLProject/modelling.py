@@ -3,9 +3,8 @@ import argparse
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, log_loss, precision_score, recall_score, roc_auc_score
 import mlflow
-import mlflow.sklearn
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_estimators", type=int, default=100)
@@ -17,20 +16,19 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if os.environ.get("GITHUB_ACTIONS") == "true":
     import dagshub
     print("🌐 Mendeteksi GitHub Actions, mengalihkan tracking ke DagsHub Cloud...")
-    
     dagshub.init(
         repo_owner='satriaego',
         repo_name='Kriteria-3-Membuat-Workflow-CI',
         mlflow=True,
     )
+else:
+    print("💻 Menjalankan secara lokal di komputer...")
+    mlflow.set_tracking_uri(f"file:///{os.path.join(current_dir, 'mlruns')}")
 
-mlflow.sklearn.autolog()
 
 mlflow.set_experiment("Eksperimen_SML_Satria_Ego_Vania")
 
 print(f"🚀 Memulai latihan model dengan n_estimators={args.n_estimators}, max_depth={args.max_depth}...")
-
-
 
 data_path = os.path.join(current_dir, 'preprocessing', 'Titanic_cleaned_latest.csv')
     
@@ -52,8 +50,30 @@ model = RandomForestClassifier(
 )
 model.fit(X_train, y_train)
 
-y_pred = model.predict(X_test)
-akurasi = accuracy_score(y_test, y_pred)
-mlflow.log_metric("testing_accuracy_score", akurasi)
+y_train_pred = model.predict(X_train)
+y_train_proba = model.predict_proba(X_train)[:, 1]
 
-print(f"✅ Model sukses dilatih! Akurasi Uji: {akurasi:.2%}")
+y_test_pred = model.predict(X_test)
+y_test_proba = model.predict_proba(X_test)[:, 1]
+
+train_acc = accuracy_score(y_train, y_train_pred)
+train_f1 = f1_score(y_train, y_train_pred, average='binary')
+train_loss = log_loss(y_train, y_train_proba)
+train_prec = precision_score(y_train, y_train_pred, average='binary')
+train_rec = recall_score(y_train, y_train_pred, average='binary')
+train_roc = roc_auc_score(y_train, y_train_proba)
+
+test_acc = accuracy_score(y_test, y_test_pred)
+
+# 📤 3. Kirim Semua Metrik Menggunakan Run ID Aktif dari mlflow run
+print("📥 Memulai proses inject manual seluruh metrik ke DagsHub...")
+mlflow.log_metric("training_accuracy_score", train_acc)
+mlflow.log_metric("training_f1_score", train_f1)
+mlflow.log_metric("training_log_loss", train_loss)
+mlflow.log_metric("training_precision_score", train_prec)
+mlflow.log_metric("training_recall_score", train_rec)
+mlflow.log_metric("training_roc_auc", train_roc)
+mlflow.log_metric("training_score", train_acc)
+mlflow.log_metric("testing_accuracy_score", test_acc)
+
+print(f"✅ Seluruh metrik sukses di-inject! Akurasi Uji Akhir: {test_acc:.2%}")

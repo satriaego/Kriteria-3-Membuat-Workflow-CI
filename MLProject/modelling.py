@@ -16,7 +16,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 if os.environ.get("GITHUB_ACTIONS") == "true":
     import dagshub
-    os.environ["DAGSHUB_USER_TOKEN"] = os.environ.get("DAGSHUB_TOKEN", "")
+    print("🌐 Mendeteksi GitHub Actions, mengalihkan tracking ke DagsHub Cloud...")
     
     dagshub.init(
         repo_owner='satriaego',

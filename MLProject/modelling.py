@@ -30,30 +30,30 @@ mlflow.set_experiment("Eksperimen_SML_Satria_Ego_Vania")
 
 print(f"🚀 Memulai latihan model dengan n_estimators={args.n_estimators}, max_depth={args.max_depth}...")
 
-with mlflow.start_run():
 
-    data_path = os.path.join(current_dir, 'preprocessing', 'Titanic_cleaned_latest.csv')
+
+data_path = os.path.join(current_dir, 'preprocessing', 'Titanic_cleaned_latest.csv')
     
-    if not os.path.exists(data_path):
-        raise FileNotFoundError(f"❌ Waduh, file data tidak ditemukan di: {data_path}")
+if not os.path.exists(data_path):
+    raise FileNotFoundError(f"❌ Waduh, file data tidak ditemukan di: {data_path}")
         
-    df = pd.read_csv(data_path)
-    df_numeric = df.select_dtypes(include=['int64', 'float64'])
-    
-    X = df_numeric.drop(columns=['Survived'])
-    y = df_numeric['Survived']
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    model = RandomForestClassifier(
-        n_estimators=args.n_estimators, 
-        max_depth=args.max_depth, 
-        random_state=42
-    )
-    model.fit(X_train, y_train)
-    
-    y_pred = model.predict(X_test)
-    akurasi = accuracy_score(y_test, y_pred)
-    mlflow.log_metric("testing_accuracy_score", akurasi)
-    
-    print(f"✅ Model sukses dilatih! Akurasi Uji: {akurasi:.2%}")
+df = pd.read_csv(data_path)
+df_numeric = df.select_dtypes(include=['int64', 'float64'])
+
+X = df_numeric.drop(columns=['Survived'])
+y = df_numeric['Survived']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(
+    n_estimators=args.n_estimators, 
+    max_depth=args.max_depth, 
+    random_state=42
+)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+akurasi = accuracy_score(y_test, y_pred)
+mlflow.log_metric("testing_accuracy_score", akurasi)
+
+print(f"✅ Model sukses dilatih! Akurasi Uji: {akurasi:.2%}")

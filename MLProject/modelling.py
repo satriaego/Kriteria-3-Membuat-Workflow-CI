@@ -50,7 +50,8 @@ model = RandomForestClassifier(
 )
 model.fit(X_train, y_train)
 
-model_output_path = os.path.join(current_dir, 'model.pkl')
+root_dir = os.path.dirname(current_dir)
+model_output_path = os.path.join(root_dir, 'model.pkl')
 joblib.dump(model, model_output_path)
 print(f"📦 Artefak compiled model sukses dibuat di: {model_output_path}")
 

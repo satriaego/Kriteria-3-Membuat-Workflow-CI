@@ -42,7 +42,7 @@ jobs:
         git pull origin main --rebase
         
         # Daftarkan file model biner .pkl ke pelacakan git
-        git add ./MLProject/model.pkl
+        git add ./model.pkl
         
         # Commit dengan mantra sakti [skip ci] agar tidak terjadi kiamat looping
         git commit -m "chore: upload compiled model artifact [skip ci]" || echo "Tidak ada perubahan model"

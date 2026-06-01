@@ -5,11 +5,14 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: 
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
 
     steps:
     - name: 📥 Check out repository code
@@ -41,15 +44,12 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action Bot"
         git pull origin main --rebase
-        
-        # Daftarkan file model biner .pkl ke pelacakan git
         git add ./model.pkl
-        
-        # Commit dengan mantra sakti [skip ci] agar tidak terjadi kiamat looping
-        git commit -m "chore: upload compiled model artifact [skip ci]" || echo "Tidak ada perubahan model"
+        git commit -m "chore: upload compiled model artifact to root [skip ci]" || echo "Tidak ada perubahan model"
         git push origin main
-    
+
     - name: 🔓 Log in to Docker Hub
+      if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
       run: |
         echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
         docker info | grep Username
@@ -58,15 +58,16 @@ jobs:
         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: 🐳 Build and Push Docker Image via MLflow
+      if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
       env:
         MLFLOW_TRACKING_URI: https://dagshub.com/satriaego/Kriteria-3-Membuat-Workflow-CI.mlflow
         MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
         MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
       run: |
-          DOCKER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
-          
-          mlflow models build-docker \
-            -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
-            -n "${DOCKER_USERNAME}/titanic-model-ci:latest"
-          
-          docker push ${DOCKER_USERNAME}/titanic-model-ci:latest
+        DOCKER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+        
+        mlflow models build-docker \
+          -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
+          -n "${DOCKER_USERNAME}/titanic-model-ci:latest"
+        
+        docker push ${DOCKER_USERNAME}/titanic-model-ci:latest

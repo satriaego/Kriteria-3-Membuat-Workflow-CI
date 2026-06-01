@@ -82,5 +82,11 @@ with mlflow.start_run():
     mlflow.log_metric("training_roc_auc", train_roc)
     mlflow.log_metric("training_score", train_acc)
     mlflow.log_metric("testing_accuracy_score", test_acc)
+    
+    mlflow.sklearn.log_model(
+        sk_model=model,
+        artifact_path="model",
+        registered_model_name="Eksperimen_SML_Satria_Ego_Vania"
+    )
 
 print(f"selesai")

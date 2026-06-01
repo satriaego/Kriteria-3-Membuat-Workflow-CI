@@ -63,10 +63,10 @@ jobs:
         MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
         MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
       run: |
-        # Menggunakan mlflow models build-docker untuk membuat container secara otomatis
-        # Kita beri nama image sesuai format: username_dockerhub/nama_repo:tag
-        mlflow models build-docker \
-          -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
-          -n "${{ secrets.DOCKERHUB_USERNAME }}/titanic-model-ci:latest" --enable-mlserver
-        
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/titanic-model-ci:latest
+          DOCKER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+          
+          mlflow models build-docker \
+            -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
+            -n "${DOCKER_USERNAME}/titanic-model-ci:latest"
+          
+          docker push ${DOCKER_USERNAME}/titanic-model-ci:latest

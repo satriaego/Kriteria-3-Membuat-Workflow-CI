@@ -2,72 +2,73 @@ name: Machine Learning CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch: 
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
 
     steps:
-    - name: 📥 Check out repository code
-      uses: actions/checkout@v3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📥 Check out repository code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: 📦 Install dependencies
-      working-directory: ./MLProject
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: 📦 Install dependencies
+        working-directory: ./MLProject
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: 🚀 Run MLflow Experiment via MLproject
-      env:
-        DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
-        MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-      run: |
-        mlflow run ./MLProject --entry-point main -P n_estimators=120 -P max_depth=6 --env-manager local
+      - name: 🚀 Run MLflow Experiment via MLproject
+        env:
+          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          mlflow run ./MLProject --entry-point main -P n_estimators=120 -P max_depth=6 --env-manager local
 
-    - name: 💾 Save Compiled Model to Repository
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action Bot"
-        git pull origin main --rebase
-        git add ./model.pkl
-        git commit -m "chore: upload compiled model artifact to root [skip ci]" || echo "Tidak ada perubahan model"
-        git push origin main
+      - name: 💾 Save Compiled Model to Repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git pull origin main --rebase
+          git add ./model.pkl
+          git commit -m "chore: upload compiled model artifact to root [skip ci]" || echo "Tidak ada perubahan model"
+          git push origin main
 
-    - name: 🔓 Log in to Docker Hub
-      if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
-      run: |
-        echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-        docker info | grep Username
-      env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: 🔓 Log in to Docker Hub
+        if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
+        run: |
+          echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+          docker info | grep Username
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: 🐳 Build and Push Docker Image via MLflow
-      if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
-      env:
-        MLFLOW_TRACKING_URI: https://dagshub.com/satriaego/Kriteria-3-Membuat-Workflow-CI.mlflow
-        MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
-        MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-      run: |
-        DOCKER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
-        
-        mlflow models build-docker \
-          -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
-          -n "${DOCKER_USERNAME}/titanic-model-ci:latest"
-        
-        docker push ${DOCKER_USERNAME}/titanic-model-ci:latest
+      - name: 🐳 Build and Push Docker Image via MLflow
+        if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
+        env:
+          MLFLOW_TRACKING_URI: https://dagshub.com/satriaego/Kriteria-3-Membuat-Workflow-CI.mlflow
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          DOCKER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+
+          mlflow models build-docker \
+            -m "models:/Eksperimen_SML_Satria_Ego_Vania/latest" \
+            -n "${DOCKER_USERNAME}/titanic-model-ci:latest" \
+            --enable-mlserver
+
+          docker push ${DOCKER_USERNAME}/titanic-model-ci:latest

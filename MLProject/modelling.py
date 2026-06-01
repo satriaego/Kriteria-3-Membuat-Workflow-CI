@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, log_loss, precision_score, recall_score, roc_auc_score
 import mlflow
+import joblib
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_estimators", type=int, default=100)
@@ -24,7 +25,6 @@ if os.environ.get("GITHUB_ACTIONS") == "true":
 else:
     print("💻 Menjalankan secara lokal di komputer...")
     mlflow.set_tracking_uri(f"file:///{os.path.join(current_dir, 'mlruns')}")
-
 
 mlflow.set_experiment("Eksperimen_SML_Satria_Ego_Vania")
 
@@ -49,6 +49,10 @@ model = RandomForestClassifier(
     random_state=42
 )
 model.fit(X_train, y_train)
+
+model_output_path = os.path.join(current_dir, 'model.pkl')
+joblib.dump(model, model_output_path)
+print(f"📦 Artefak compiled model sukses dibuat di: {model_output_path}")
 
 y_train_pred = model.predict(X_train)
 y_train_proba = model.predict_proba(X_train)[:, 1]

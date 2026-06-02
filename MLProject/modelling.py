@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, log_loss, precision_score, recall_score, roc_auc_score
 import mlflow
 import joblib
+from mlflow.models import infer_signature
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_estimators", type=int, default=100)
@@ -83,10 +84,13 @@ with mlflow.start_run():
     mlflow.log_metric("training_score", train_acc)
     mlflow.log_metric("testing_accuracy_score", test_acc)
     
+    model_signature = infer_signature(X_train, model.predict(X_train))
+
     mlflow.sklearn.log_model(
         sk_model=model,
         artifact_path="model",
-        registered_model_name="Eksperimen_SML_Satria_Ego_Vania"
+        registered_model_name="Eksperimen_SML_Satria_Ego_Vania",
+        signature=model_signature
     )
 
 print(f"selesai")

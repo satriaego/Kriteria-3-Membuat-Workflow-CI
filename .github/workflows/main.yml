@@ -47,6 +47,12 @@ jobs:
           git add ./model.pkl
           git commit -m "chore: upload compiled model artifact to root [skip ci]" || echo "Tidak ada perubahan model"
           git push origin main
+      
+      - name: 📦 Upload Model Artifact to GitHub Actions Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: titanic-trained-model
+          path: ./model.pkl
 
       - name: 🔓 Log in to Docker Hub
         if: github.event_name == 'workflow_dispatch' # ✨ KUNCI PENCEKALAN
